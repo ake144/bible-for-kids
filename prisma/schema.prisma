@@ -11,6 +11,7 @@ datasource db {
 model User {
   id      Int          @id @default(autoincrement())
   email   String       @unique
+  clerkId   String   @unique  
   name    String?
   quizzes UserQuiz[] // relationship to quizzes taken by the user
   answers UserAnswer[] // relationship to user's answers
