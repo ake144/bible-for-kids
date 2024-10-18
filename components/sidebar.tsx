@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { Home, Book, Award, PlayCircle, Settings, HelpCircle } from 'lucide-react'
 import {
-  ClerkProvider,
   SignInButton,
   SignedIn,
   SignedOut,

@@ -1,10 +1,10 @@
 // pages/api/webhooks/clerk.ts
 
 import prisma from "@/lib/db";
-import { NextRequest, NextResponse } from "next/server";
+import {  NextResponse } from "next/server";
 
 
-export default async function POST(req:Request, res:NextResponse) {
+export default async function POST(req:Request) {
 
     const { id, fullName, emailAddresses }  =  await req.json();
 
