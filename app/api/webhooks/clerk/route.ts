@@ -4,7 +4,7 @@ import prisma from "@/lib/db";
 import {  NextResponse } from "next/server";
 
 
-export default async function POST(req:Request) {
+export  async function POST(req:Request) {
 
     const { id, fullName, emailAddresses }  =  await req.json();
 
