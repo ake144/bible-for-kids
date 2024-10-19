@@ -1,11 +1,22 @@
+'use client'
+
 import Link from 'next/link'
 import { Home, Book, Award, PlayCircle, Settings, HelpCircle } from 'lucide-react'
 import {
   SignInButton,
   SignedIn,
   SignedOut,
-  UserButton
+  UserButton,
+  useUser
 } from '@clerk/nextjs'
+
+import { useAuth } from '@clerk/nextjs';
+import { useEffect } from 'react';
+
+const { isSignedIn } = useAuth();
+const { user } = useUser();
+
+
 
 
 const navItems = [
@@ -18,6 +29,21 @@ const navItems = [
 ]
 
 export default function Sidebar() {
+
+  useEffect(() => {
+    if (isSignedIn) {
+      fetch('/api/auth/sync-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user }),
+      })
+        .then((res) => res.json())
+        .then((data) => console.log('User synced', data))
+        .catch((error) => console.error('Error syncing user:', error));
+    }
+  }, [isSignedIn]);
+  
+
   return (
     <div className="bg-white w-64 h-screen shadow-lg fixed left-0 top-0 overflow-y-auto">
       <div className="p-6">

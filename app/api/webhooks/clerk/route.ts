@@ -2,8 +2,7 @@ import { Webhook } from 'svix';
 import { headers } from 'next/headers';
 import { WebhookEvent } from '@clerk/nextjs/server';
 import { createUser } from '@/lib/users';
-
-
+import { User } from '@prisma/client';
 
 export async function POST(req: Request) {
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
@@ -14,62 +13,68 @@ export async function POST(req: Request) {
     );
   }
 
-  // Get the headers
+  // Extract headers required for Svix verification
   const headerPayload = headers();
-  const svixId = headerPayload.get('svix-id');
-  const svixTimestamp = headerPayload.get('svix-timestamp');
-  const svixSignature = headerPayload.get('svix-signature');
+  const svix_id = headerPayload.get('svix-id');
+  const svix_timestamp = headerPayload.get('svix-timestamp');
+  const svix_signature = headerPayload.get('svix-signature');
 
-  // If there are no headers, error out
-  if (!svixId || !svixTimestamp || !svixSignature) {
-    return new Response('Error occurred -- no svix headers', {
+  // Ensure required headers are present
+  if (!svix_id || !svix_timestamp || !svix_signature) {
+    return new Response('Missing Svix headers', {
       status: 400,
     });
   }
 
-  // Get the body
+  // Extract the webhook payload
   const payload = await req.json();
   const body = JSON.stringify(payload);
 
-  // Create a new Svix instance with your secret.
+  // Create Svix webhook instance with your secret
   const wh = new Webhook(WEBHOOK_SECRET);
-
   let evt: WebhookEvent;
 
-  // Verify the payload with the headers
+  // Verify the webhook signature
   try {
     evt = wh.verify(body, {
-      'svix-id': svixId,
-      'svix-timestamp': svixTimestamp,
-      'svix-signature': svixSignature,
+      'svix-id': svix_id,
+      'svix-timestamp': svix_timestamp,
+      'svix-signature': svix_signature,
     }) as WebhookEvent;
   } catch (err) {
     console.error('Error verifying webhook:', err);
-    return new Response('Error occurred', {
+    return new Response('Webhook verification failed', {
       status: 400,
     });
   }
 
+  // Handle user creation from webhook
   const eventType = evt.type;
 
-  // Handle different Clerk events
   if (eventType === 'user.created') {
-    const { id, email_addresses, first_name, last_name } = evt.data;
+    const { id, email_addresses, first_name, last_name, image_url } = evt.data;
 
     if (!id || !email_addresses) {
-      return new Response('Error occurred -- missing data', {
+      return new Response('Missing required data', {
         status: 400,
       });
     }
 
-    const user = {
+    const userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'> = {
       clerkId: id,
-      email: email_addresses[0]?.email_address,
-      name: `${first_name ?? ''} ${last_name ?? ''}`.trim(),
+      email: email_addresses[0].email_address,
+      name: `${first_name || ''} ${last_name || ''}`.trim(),
     };
 
-    // Sync user with Neon DB via Prisma
-    await createUser(user);
+    // Create user in the database
+    const { error } = await createUser(userData);
+
+    if (error) {
+      console.error('Error creating user:', error);
+      return new Response('Error creating user in the database', {
+        status: 500,
+      });
+    }
   }
 
   return new Response('', { status: 200 });
