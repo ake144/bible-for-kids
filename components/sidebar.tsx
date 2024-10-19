@@ -13,11 +13,6 @@ import {
 import { useAuth } from '@clerk/nextjs';
 import { useEffect } from 'react';
 
-const { isSignedIn } = useAuth();
-const { user } = useUser();
-
-
-
 
 const navItems = [
   { name: 'Dashboard', icon: Home, href: '/dashboard' },
@@ -29,6 +24,10 @@ const navItems = [
 ]
 
 export default function Sidebar() {
+
+  const { isSignedIn } = useAuth();
+const { user } = useUser();
+
 
   useEffect(() => {
     if (isSignedIn) {
