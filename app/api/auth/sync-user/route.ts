@@ -3,7 +3,7 @@
 import prisma from "@/lib/db";
 import { NextResponse } from "next/server";
 
-export  async function Post(req:Request) {
+export  async function POST(req:Request) {
   const { user } = await req.json(); 
 
   try {
