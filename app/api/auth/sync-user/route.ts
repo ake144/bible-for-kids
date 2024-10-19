@@ -1,10 +1,16 @@
 // pages/api/auth/sync-clerk-user.js
-
 import prisma from "@/lib/db";
 import { NextResponse } from "next/server";
 
-export  async function POST(req:Request) {
+export async function POST(req: Request) {
   const { user } = await req.json(); 
+
+  // Check if user is defined and has the necessary properties
+  if (!user || !user.id || !user.emailAddresses || user.emailAddresses.length === 0) {
+    return NextResponse.json({ error: 'Invalid user data' }, { status: 400 });
+  }
+
+  console.log(user.id, user.emailAddresses[0].emailAddress, `${user.firstName} ${user.lastName}`);
 
   try {
     const updatedUser = await prisma.user.upsert({
@@ -20,10 +26,10 @@ export  async function POST(req:Request) {
       },
     });
 
-    return NextResponse.json({ updatedUser }, {status:200});
+    return NextResponse.json({ updatedUser }, { status: 200 });
 
   } catch (error) {
     console.error(error);
-  return NextResponse.json({error},{status:500})
+    return NextResponse.json({ error: 'Failed to sync user' }, { status: 500 });
   }
 }

@@ -26,22 +26,21 @@ const navItems = [
 export default function Sidebar() {
 
   const { isSignedIn } = useAuth();
-const { user } = useUser();
-
+  const { user } = useUser();
 
   useEffect(() => {
-    if (isSignedIn) {
+    if (isSignedIn && user) {
+      // Ensure the user object is fully defined before making the API call
       fetch('/api/auth/sync-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user }),
+        body: JSON.stringify({ user }), // Sending the user object to the API
       })
         .then((res) => res.json())
         .then((data) => console.log('User synced', data))
         .catch((error) => console.error('Error syncing user:', error));
     }
-  }, [isSignedIn]);
-  
+  }, [isSignedIn, user]); 
 
   return (
     <div className="bg-white w-64 h-screen shadow-lg fixed left-0 top-0 overflow-y-auto">
