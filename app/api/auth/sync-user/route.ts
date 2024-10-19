@@ -1,6 +1,8 @@
 // pages/api/auth/sync-clerk-user.js
 import prisma from "@/lib/db";
 import { NextResponse } from "next/server";
+import { connectRedis, redisClient } from '@/lib/redis';  // Import Redis utility
+
 
 export async function POST(req: Request) {
   const { user } = await req.json(); 
@@ -13,6 +15,9 @@ export async function POST(req: Request) {
   console.log(user.id, user.emailAddresses[0].emailAddress, `${user.firstName} ${user.lastName}`);
 
   try {
+
+    await connectRedis();
+
     const updatedUser = await prisma.user.upsert({
       where: { clerkId: user.id },
       update: {
@@ -25,6 +30,12 @@ export async function POST(req: Request) {
         name: `${user.firstName} ${user.lastName}`,
       },
     });
+
+     // Cache user info in Redis with a key like 'user:{clerkId}'
+     const cacheKey = `user:${user.id}`;
+     await redisClient.set(cacheKey, JSON.stringify(updatedUser), {
+       EX: 48000, 
+     });
 
     return NextResponse.json({ updatedUser }, { status: 200 });
 

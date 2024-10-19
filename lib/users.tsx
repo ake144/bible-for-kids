@@ -1,4 +1,3 @@
-
 import { User } from '@prisma/client';
 import prisma from './db';
 
@@ -12,29 +11,35 @@ export async function createUser(data: Omit<User, 'id' | 'createdAt' | 'updatedA
   }
 }
 
-// Retrieve User by ID or Clerk ID
-export async function getUserById({
-  id,
-  clerkId
-}: {
-  id?: string
-  clerkId?: string
-}) {
+export async function getUserById(userId: string) {
   try {
-    if (!id && !clerkId) {
-      throw new Error('id or clerkId is required');
+    // Pass userId as a query parameter
+    const response = await fetch(`/api/auth/get-user/?userId=${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    // If the response is not OK, throw an error
+    if (!response.ok) {
+      throw new Error(`User not found: ${response.statusText}`);
     }
 
-    const query = id ? { id: parseInt(id) } : { clerkId };
+    // Parse the JSON data
+    const user = await response.json();
 
-    const user = await prisma.user.findUnique({
-      where: query,
-    });
-    return { user };
+    console.log('User data fetched: in usersss', user);
+
+    // Return the user data
+    return user; // Return just the user object
+
   } catch (error) {
-    return { error };
+    console.error('Error fetching user:', error);
+    return null; // Return null in case of error
   }
 }
+
 
 // Update User data
 export async function updateUser(id: number, data: Partial<User>) {
@@ -48,3 +53,6 @@ export async function updateUser(id: number, data: Partial<User>) {
     return { error };
   }
 }
+
+
+

@@ -1,18 +1,15 @@
-// lib/redis.js
-import Redis from 'ioredis';
+import { createClient } from 'redis';
 
-const redisUrl = process.env.UPSTASH_REDIS_URL;
-const redisToken = process.env.UPSTASH_REDIS_TOKEN
-
-if (!redisUrl) {
-  throw new Error('UPSTASH_REDIS_URL is not defined');
-}
-
-const redis = new Redis(redisUrl, {
-  password: redisToken,
-  tls: {
-    rejectUnauthorized: false, // Necessary for SSL
-  },
+const redisClient = createClient({
+  url: process.env.REDIS_URL, // This can be 'redis://localhost:6379' for local Redis
 });
 
-export default redis;
+redisClient.on('error', (err) => console.error('Redis Client Error', err));
+
+async function connectRedis() {
+  if (!redisClient.isOpen) {
+    await redisClient.connect();
+  }
+}
+
+export { redisClient, connectRedis };

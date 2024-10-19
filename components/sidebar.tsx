@@ -25,6 +25,7 @@ const navItems = [
 
 export default function Sidebar() {
 
+
   const { isSignedIn } = useAuth();
   const { user } = useUser();
 
@@ -66,7 +67,7 @@ export default function Sidebar() {
         
           <UserButton   />
           <div className='ml-3'>
-            <p className="font-semibold text-purple-800">Sarah Johnson</p>
+            <p className="font-semibold text-purple-800">{user?.firstName}</p>
             <p className="text-sm text-purple-600">View Profile</p>
           </div>
         </Link>

@@ -1,20 +1,54 @@
-import { User, Mail, Calendar, Award, BookOpen, Trophy } from 'lucide-react'
-import Image from 'next/image'
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useAuth } from '@clerk/nextjs';
+import { getUserById } from '@/lib/users'; // Assume this is a valid function
+import { Mail, Calendar, Award, BookOpen, Trophy, User } from 'lucide-react';
+import Image from 'next/image';
+import { UserSchema } from '@/lib/schema';
 
 export default function UserProfile() {
+  const { userId } = useAuth(); // Destructure userId from Clerk
+  const [user, setUser] = useState<UserSchema>(); // State to store the fetched user data
+
+
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!userId) return  console.log('userId is not found'); // If userId is not available, exit the function
+      try {
+        const fetchedUser = await getUserById(userId); // Fetch user from the backend or API
+       
+        console.log('fectched user', fetchedUser); // Log the fetched user data
+
+        setUser(fetchedUser); // Set the fetched user data into state
+      } catch (error) {
+        console.error('Error fetching user data:', error); // Log any error
+      }
+    };
+    fetchUser();
+  }, [userId]); //
+
+
+
+  console.log(user); // Log the user object to the console  
+
   return (
+
+  <>
+ 
     <div className="min-h-screen bg-gradient-to-b from-purple-100 to-pink-100 p-6">
       <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-xl overflow-hidden">
         <div className="md:flex">
           <div className="md:flex-shrink-0 bg-purple-600 p-8 flex flex-col items-center justify-center">
             <Image
-              src="/placeholder.svg?height=150&width=150"
+              src="/placeholder.svg"
               alt="Profile picture"
               width={150}
               height={150}
               className="rounded-full border-4 border-white shadow-lg"
             />
-            <h1 className="mt-4 text-2xl font-bold text-white">Sarah Johnson</h1>
+            <h1 className="mt-4 text-2xl font-bold text-white">{user?.name}</h1>
             <p className="text-purple-200">Little Explorer</p>
           </div>
           <div className="p-8">
@@ -23,21 +57,21 @@ export default function UserProfile() {
                 <User className="w-6 h-6 text-purple-600 mr-3" />
                 <div>
                   <p className="text-sm text-gray-600">Username</p>
-                  <p className="font-semibold">sarahj2014</p>
+                  <p className="font-semibold">{user?.name}</p>
                 </div>
               </div>
               <div className="flex items-center">
                 <Mail className="w-6 h-6 text-purple-600 mr-3" />
                 <div>
                   <p className="text-sm text-gray-600">Email</p>
-                  <p className="font-semibold">sarah@example.com</p>
+                  <p className="font-semibold">{user?.email}</p>
                 </div>
               </div>
               <div className="flex items-center">
                 <Calendar className="w-6 h-6 text-purple-600 mr-3" />
                 <div>
                   <p className="text-sm text-gray-600">Joined</p>
-                  <p className="font-semibold">January 15, 2023</p>
+                  <p className="font-semibold">{user?.createdAt}</p>
                 </div>
               </div>
               <div className="flex items-center">
@@ -85,5 +119,7 @@ export default function UserProfile() {
         </div>
       </div>
     </div>
-  )
+ 
+    </>
+  );
 }
